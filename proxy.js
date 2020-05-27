@@ -986,7 +986,16 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.socket = minerSocket;
     this.pushMessage = pushMessage;
 
-    this.identifier = global.config.addressWorkerID ? this.user : pass_split[0];
+    switch(global.config.workerID) {
+    case "address":
+        this.identifier = this.user
+        break;
+    case "rigid":
+        this.identifier = params.rigid
+        break;
+    default:
+        this.identifier = pass_split[0]
+    }
 
     this.minerName = (this.identifier && this.identifier != "x") ? this.identifier + " (" + this.ip + ")" : this.ip;
 
