@@ -10,7 +10,6 @@ const support = require('./lib/support.js')();
 global.config = require('./config.json');
 
 const PROXY_VERSION = "0.17.3";
-const DEFAULT_ALGO      = [ "rx/0" ];
 const DEFAULT_ALGO_PERF = { "rx/0": 1, "rx/loki": 1 };
 
 /*
@@ -205,13 +204,18 @@ function Pool(poolData){
     if (poolData.hasOwnProperty('allowSelfSignedSSL')){
         this.allowSelfSignedSSL = !poolData.allowSelfSignedSSL;
     }
-    const algo_arr = poolData.algo ? (poolData.algo instanceof Array ? poolData.algo : [poolData.algo]) : DEFAULT_ALGO;
+
+    this.algos_perf = this.default_algos_perf = poolData.algo_perf &&
+        poolData.algo_perf instanceof Object ?
+        poolData.algo_perf : DEFAULT_ALGO_PERF;
+    const algo_arr = poolData.algo ?
+          (poolData.algo instanceof Array ?
+           poolData.algo : [poolData.algo]) : Object.keys(this.algos_perf);
     this.default_algo_set = {};
     this.algos            = {};
-    for (let i in algo_arr) this.algos[algo_arr[i]] = this.default_algo_set[algo_arr[i]] = 1;
-    this.algos_perf = this.default_algos_perf = poolData.algo_perf && poolData.algo_perf instanceof Object ? poolData.algo_perf : DEFAULT_ALGO_PERF;
-    this.blob_type  = poolData.blob_type;
 
+    for (let i in algo_arr) this.algos[algo_arr[i]] = this.default_algo_set[algo_arr[i]] = 1;
+    this.blob_type  = poolData.blob_type;
 
     setInterval(function(pool) {
         if (pool.keepAlive && pool.socket && is_active_pool(pool.hostname)) pool.sendData('keepalived');
@@ -888,6 +892,58 @@ function is_active_pool(hostname) {
     return true;
 }
 
+function warn_algo_support(minerName, poolName, poolAlgo) {
+    console.warn("Your miner " + minerName +
+                 " does not have " + poolAlgo +
+                 " algo support required by " +
+                 poolName + " Please update it.");
+}
+
+function match_miner_algo_to_pool(miner, portData){
+    if (!defaultPools.hasOwnProperty(portData.coin) || !is_active_pool(defaultPools[portData.coin])) {
+        for (let poolName in activePools){
+            if (activePools.hasOwnProperty(poolName)){
+                let pool = activePools[poolName];
+                if (pool.coin != portData.coin || pool.devPool) continue;
+		            if (is_active_pool(poolName)) {
+                    miner.pool = poolName;
+                    break;
+                }
+            }
+        }
+    }
+    if (!miner.pool) miner.pool = defaultPools[portData.coin];
+    let pool_algo = null
+    if (miner.algos) {
+        let p = activePools[miner.pool];
+        if (p) {
+            let bT = p.activeBlocktemplate;
+            if (bT && bT.blob) {
+                let pool_algo = p.activeBlocktemplate.algo
+                if (!(pool_algo in miner.algos)) {
+                    warn_algo_support(miner.minerName, miner.pool, pool_algo)
+                    for (let poolName in activePools) {
+                        if (poolName == miner.pool || activePools[poolName].devPool) continue
+                        if (poolName) {
+                            let p = activePools[poolName]
+                            let bT = p.activeBlocktemplate;
+                            if (bT && bT.blob) {
+                                let pool_algo = p.activeBlocktemplate.algo
+                                if (pool_algo in miner.algos) {
+                                    miner.pool = poolName
+                                    break
+                                }
+                            }
+                            warn_algo_support(miner.minerName, poolName, pool_algo)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pool_algo
+}
+
 // Miner Definition
 function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     // Arguments
@@ -929,6 +985,24 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.algos_perf = params["algo-perf"]; // To report sum of defined algo_perf to the pool for all its miners
     this.socket = minerSocket;
     this.pushMessage = pushMessage;
+
+    switch(global.config.workerID) {
+    case "address":
+        this.identifier = this.user
+        break;
+    case "rigid":
+        this.identifier = params.rigid
+        break;
+    default:
+        this.identifier = pass_split[0]
+    }
+
+    this.minerName = (this.identifier && this.identifier != "x") ? this.identifier + " (" + this.ip + ")" : this.ip;
+
+    const pool_algo = match_miner_algo_to_pool(this, portData)
+    const pool = this.pool
+    const blockTemplate = activePools[this.pool].activeBlocktemplate
+
     this.getNewJob = function (bashCache) {
        return this.coinFuncs.getJob(this, activePools[this.pool].activeBlocktemplate, bashCache);
     };
@@ -998,23 +1072,6 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
 
     this.cachedJob = null;
 
-    this.identifier = global.config.addressWorkerID ? this.user : pass_split[0];
-
-    this.logString = (this.identifier && this.identifier != "x") ? this.identifier + " (" + this.ip + ")" : this.ip;
-
-    if (this.algos) {
-        const pool = activePools[this.pool];
-        if (pool) {
-            const blockTemplate = pool.activeBlocktemplate;
-            if (blockTemplate && blockTemplate.blob) {
-                const pool_algo = pool.coinFuncs.detectAlgo(pool.default_algo_set, 16 * parseInt(blockTemplate.blob[0]) + parseInt(blockTemplate.blob[1]));
-                if (!(pool_algo in this.algos)) {
-                    console.warn("Your miner " + this.logString + " does not have " + pool_algo + " algo support. Please update it.");
-                }
-            }
-        }
-    }
-
     this.minerStats = function(){
         if (this.socket.destroyed && !global.config.keepOfflineMiners){
             delete activeMiners[this.id];
@@ -1038,7 +1095,7 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
             agent: this.agent,
             algos: this.algos,
             algos_perf: this.algos_perf,
-            logString: this.logString,
+            minerName: this.minerName,
         };
     };
 
@@ -1063,7 +1120,7 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
         if (this.difficulty === this.newDiff) {
             return false;
         }
-        debug.diff(global.threadName + "Difficulty change to: " + this.newDiff + " For: " + this.logString);
+        debug.diff(global.threadName + "Difficulty change to: " + this.newDiff + " For: " + this.minerName);
         if (this.hashes > 0){
             debug.diff(global.threadName + "Hashes: " + this.hashes + " in: " + Math.floor((Date.now() - this.connectTime)/1000) + " seconds gives: " +
                 Math.floor(this.hashes/(Math.floor((Date.now() - this.connectTime)/1000))) + " hashes/second or: " +
@@ -1129,7 +1186,7 @@ function handleMinerData(minerSocket, id, method, params, ip, portData, sendRepl
             if (!portData.coin) portData.coin = "xmr";
             let miner = new Miner(minerId, params, ip, pushMessage, portData, minerSocket);
             if (!miner.valid_miner) {
-                console.warn(global.threadName + "Invalid miner: " + miner.logString + ", disconnecting due to: " + miner.error);
+                console.warn(global.threadName + "Invalid miner: " + miner.minerName + ", disconnecting due to: " + miner.error);
                 sendReplyFinal(miner.error);
                 return;
             }
@@ -1212,13 +1269,13 @@ function handleMinerData(minerSocket, id, method, params, ip, portData, sendRepl
                                  (typeof params.nonce !== 'string') || !(job.blob_type == 7 ? nonceCheck64.test(params.nonce) : nonceCheck32.test(params.nonce) );
 
             if (is_bad_nonce) {
-                console.warn(global.threadName + 'Malformed nonce: ' + JSON.stringify(params) + ' from ' + miner.logString);
+                console.warn(global.threadName + 'Malformed nonce: ' + JSON.stringify(params) + ' from ' + miner.minerName);
                 sendReply('Duplicate share');
                 return;
             }
 
             if (job.submissions.indexOf(params.nonce) !== -1) {
-                console.warn(global.threadName + 'Duplicate share: ' + JSON.stringify(params) + ' from ' + miner.logString);
+                console.warn(global.threadName + 'Duplicate share: ' + JSON.stringify(params) + ' from ' + miner.minerName);
                 sendReply('Duplicate share');
                 return;
             }
@@ -1234,7 +1291,7 @@ function handleMinerData(minerSocket, id, method, params, ip, portData, sendRepl
             })[0];
 
             if (!blockTemplate) {
-                console.warn(global.threadName + 'Block expired, Height: ' + job.height + ' from ' + miner.logString);
+                console.warn(global.threadName + 'Block expired, Height: ' + job.height + ' from ' + miner.minerName);
                 if (miner.incremented === false){
                     miner.newDiff = miner.difficulty + 1;
                     miner.incremented = true;
@@ -1321,7 +1378,7 @@ function activateHTTP() {
 					if (typeof(miner) === 'undefined' || !miner) continue;
 					if (miner.active) {
   						miners[miner.id] = miner;
-						const name = miner.logString;
+						const name = miner.minerName;
                                                 miner_names[name] = 1;
 						++ totalWorkers;
 						totalHashrate += miner.avgSpeed;
@@ -1334,7 +1391,7 @@ function activateHTTP() {
 			}
     			for (let offline_miner_id in offline_miners) {
 				const miner = offline_miners[offline_miner_id];
-				const name = miner.logString;
+				const name = miner.minerName;
 				if (name in miner_names) continue;
 				miners[miner.id] = miner;
 				miner_names[name] = 1;
@@ -1343,7 +1400,7 @@ function activateHTTP() {
 			let tableBody = "";
     			for (let miner_id in miners) {
 				const miner = miners[miner_id];
-				const name = miner.logString;
+				const name = miner.minerName;
 				let avgSpeed = miner.active ? support.human_hashrate(miner.avgSpeed, activePools[miner.pool].activeBlocktemplate.algo) : "offline";
 				let agent_parts = miner.agent.split(" ");
 				tableBody += `
