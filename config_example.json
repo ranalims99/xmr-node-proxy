@@ -10,7 +10,6 @@
       "password": "",
       "keepAlive": true,
       "algo": "rx/0",
-      "algo_perf": { "rx/0": 1, "rx/loki": 1 },
       "blob_type": "cryptonote_zeph",
       "default": true
     }
