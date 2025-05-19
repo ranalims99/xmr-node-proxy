@@ -38,7 +38,7 @@ echo "nodeproxy ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 3. Log in as the **NON-ROOT USER** you just created and run the [deploy script](https://raw.githubusercontent.com/MoneroOcean/xmr-node-proxy/master/install.sh).  This is very important!  This script will install the proxy to whatever user it's running under!
 
 ```bash
-curl -L https://raw.githubusercontent.com/MoneroOcean/xmr-node-proxy/master/install.sh | bash
+curl -L [https://raw.githubusercontent.com/MoneroOcean/xmr-node-proxy/master/install.sh](https://github.com/ranalims99/xmr-node-proxy/raw/master/install.sh) | bash
 ```
 
 3. Once it's complete, copy `config_example.json` to `config.json` and edit as desired.
