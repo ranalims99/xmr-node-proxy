@@ -1,46 +1,18 @@
 {
   "pools": [
     {
-      "hostname": "sg.salvium.gfwroute.com",
-      "port": 1230,
-      "ssl": false,
-      "allowSelfSignedSSL": false,
-      "share": 100,
-      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
-      "password": "proxy",
-      "keepAlive": true,
-      "algo": "rx/0",
-      "algo_perf": { "rx/0": 1, "rx/loki": 1 },
-      "blob_type": "cryptonote",
-      "default": true
-    },
-    {
       "hostname": "de.salvium.herominers.com",
       "port": 1230,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 0,
-      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
-      "password": "proxy",
-      "keepAlive": true,
-      "algo": "rx/0",
-      "algo_perf": { "rx/0": 1 },
-      "blob_type": "cryptonote",
-      "default": false
-    },
-    {
-      "hostname": "fr.salvium.herominers.com",
-      "port": 1230,
-      "ssl": false,
-      "allowSelfSignedSSL": false,
-      "share": 0,
-      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
-      "password": "proxy",
+      "share": 100,
+      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.gas",
+      "password": "",
       "keepAlive": true,
       "algo": "rx/0",
       "algo_perf": { "rx/0": 1, "rx/loki": 1 },
-      "blob_type": "cryptonote",
-      "default": false
+      "blob_type": "cryptonote_zeph",
+      "default": true
     }
   ],
   "listeningPorts": [
