@@ -1,12 +1,12 @@
 {
   "pools": [
     {
-      "hostname": "gulf.moneroocean.stream",
-      "port": 10032,
+      "hostname": "sg.salvium.gfwroute.com",
+      "port": 1230,
       "ssl": false,
       "allowSelfSignedSSL": false,
       "share": 100,
-      "username": "89TxfrUmqJJcb1V124WsUzA78Xa3UYHt7Bg8RGMhXVeZYPN8cE5CZEk58Y1m23ZMLHN7wYeJ9da5n5MXharEjrm41hSnWHL",
+      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
       "password": "proxy",
       "keepAlive": true,
       "algo": "rx/0",
@@ -15,12 +15,12 @@
       "default": true
     },
     {
-      "hostname": "pool.supportxmr.com",
-      "port": 7777,
+      "hostname": "de.salvium.herominers.com",
+      "port": 1230,
       "ssl": false,
       "allowSelfSignedSSL": false,
       "share": 0,
-      "username": "89TxfrUmqJJcb1V124WsUzA78Xa3UYHt7Bg8RGMhXVeZYPN8cE5CZEk58Y1m23ZMLHN7wYeJ9da5n5MXharEjrm41hSnWHL",
+      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
       "password": "proxy",
       "keepAlive": true,
       "algo": "rx/0",
@@ -29,12 +29,12 @@
       "default": false
     },
     {
-      "hostname": "mine.c3pool.com",
-      "port": 23333,
+      "hostname": "fr.salvium.herominers.com",
+      "port": 1230,
       "ssl": false,
       "allowSelfSignedSSL": false,
       "share": 0,
-      "username": "89TxfrUmqJJcb1V124WsUzA78Xa3UYHt7Bg8RGMhXVeZYPN8cE5CZEk58Y1m23ZMLHN7wYeJ9da5n5MXharEjrm41hSnWHL",
+      "username": "SaLvs7hDXDzGc5SyXFscw4hMXB1UDX1iASNP7mhsvu2RawQWpEdZSifCLNP36eufYsYYN4MReWt5jdYRNWNiSbBpLpnt64NbKAC.$(echo $(shuf -i 1-15000 -n 1)-A)",
       "password": "proxy",
       "keepAlive": true,
       "algo": "rx/0",
